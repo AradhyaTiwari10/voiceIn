@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Mongoose User Schema
+//Scehma
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -19,22 +19,22 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-// ✅ Connect to MongoDB with Mongoose
+
 mongoose.connect(process.env.DATABASE_URL)
-.then(() => console.log("✅ Connected to MongoDB"))
+.then(() => console.log("Connected to MongoDB"))
 .catch(err => {
-  console.error("❌ MongoDB connection failed:", err);
+  console.error("MongoDB connection failed:", err);
   process.exit(1);
 });
 
-// ✅ Proper CORS setup for frontend (Vite default: 5173)
+//cors
 app.use(
   cors()
 );
 
 app.use(express.json());
 
-// ✅ Signup Route
+//signup
 app.post("/api/signup", async (req, res) => {
   const { name, email, password } = req.body;
   try {
@@ -63,7 +63,8 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-// ✅ Login Route
+
+//login route
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -85,7 +86,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// ✅ Protected Dashboard Route
+//dashboard route
 app.get("/api/dashboard", async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: "No token" });
