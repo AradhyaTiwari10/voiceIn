@@ -19,6 +19,7 @@ export default function Signup() {
       <input placeholder="Email" onChange={(e)=>setForm({...form, email:e.target.value})}/>
       <input placeholder="Password" type="password" onChange={(e)=>setForm({...form, password:e.target.value})}/>
       <button type="submit">Sign Up</button>
+      <p>Already have an account? <Link to="/login">Login here</Link></p>
     </form>
   );
 }
