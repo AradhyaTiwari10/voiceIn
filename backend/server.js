@@ -3,20 +3,26 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { MongoClient, ObjectId } from "mongodb";
+import mongoose from "mongoose";
 
 dotenv.config();
 
 const app = express();
-const mongoUrl = process.env.DATABASE_URL;
-const client = new MongoClient(mongoUrl);
-let db;
 
-// Connect to MongoDB
-client.connect().then(() => {
-  db = client.db();
-  console.log("✅ Connected to MongoDB");
-}).catch(err => {
+// ✅ Mongoose User Schema
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const User = mongoose.model("User", userSchema);
+
+// ✅ Connect to MongoDB with Mongoose
+mongoose.connect(process.env.DATABASE_URL)
+.then(() => console.log("✅ Connected to MongoDB"))
+.catch(err => {
   console.error("❌ MongoDB connection failed:", err);
   process.exit(1);
 });
@@ -32,25 +38,24 @@ app.use(express.json());
 app.post("/api/signup", async (req, res) => {
   const { name, email, password } = req.body;
   try {
-    const usersCollection = db.collection("users");
-
     // Check if user already exists
-    const existingUser = await usersCollection.findOne({ email });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "Email already exists" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const result = await usersCollection.insertOne({
+    const newUser = new User({
       name,
       email,
       password: hashed,
-      createdAt: new Date(),
     });
+
+    const savedUser = await newUser.save();
 
     res.status(201).json({
       message: "User created",
-      user: { id: result.insertedId, name, email },
+      user: { id: savedUser._id, name, email },
     });
   } catch (e) {
     console.error(e);
@@ -62,8 +67,7 @@ app.post("/api/signup", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   try {
-    const usersCollection = db.collection("users");
-    const user = await usersCollection.findOne({ email });
+    const user = await User.findOne({ email });
 
     if (!user) return res.status(400).json({ error: "User not found" });
 
@@ -89,8 +93,7 @@ app.get("/api/dashboard", async (req, res) => {
   const token = auth.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const usersCollection = db.collection("users");
-    const user = await usersCollection.findOne({ _id: new ObjectId(decoded.id) });
+    const user = await User.findById(decoded.id);
 
     if (!user) return res.status(401).json({ error: "User not found" });
 
