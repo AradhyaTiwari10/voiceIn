@@ -2,7 +2,7 @@
 
 **"Speak your thoughts. Publish like a pro."**
 
-VoiceIn is a web app that allows users to speak their thoughts, ideas, insights, daily learnings, or updates — and instantly transforms them into beautiful, polished, viral-ready LinkedIn posts.
+VoiceIn is a web app that allows users to speak their thoughts, ideas, insights, daily learnings, or updates and instantly transforms them into beautiful, polished, viral-ready LinkedIn posts.
 
 ## Problem Statement
 
@@ -257,4 +257,4 @@ voicein/
 3. Set `DATABASE_URL` and `JWT_SECRET`
 4. Deploy
 
-# Thank YOu
+# Thank YOU
