@@ -1,4 +1,4 @@
-# VoiceIn — AI Voice-Powered LinkedIn Content Creator
+# VoiceIn AI Voice-Powered LinkedIn Content Creator
 
 **"Speak your thoughts. Publish like a pro."**
 
