@@ -1,25 +1,51 @@
 import { useState } from "react";
 import axios from "../utils/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
+import "./auth.css";
 
 export default function Signup() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post("/signup", form);
-    navigate("/login");
+    setError("");
+    setLoading(true);
+    try {
+      await axios.post("/signup", form);
+      navigate("/login");
+    } catch (err) {
+      setError(err.response?.data?.error || "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Signup</h2>
-      <input placeholder="Name" onChange={(e)=>setForm({...form, name:e.target.value})}/>
-      <input placeholder="Email" onChange={(e)=>setForm({...form, email:e.target.value})}/>
-      <input placeholder="Password" type="password" onChange={(e)=>setForm({...form, password:e.target.value})}/>
-      <button type="submit">Sign Up</button>
-      <p>Already have an account? <Link to="/login">Login here</Link></p>
-    </form>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>🎙️ VoiceIn</h1>
+          <p>AI Voice-Powered LinkedIn Content Creator</p>
+        </div>
+
+        <button
+          type="button"
+          className="btn-linkedin"
+          onClick={() => window.location.href = "http://localhost:5001/api/auth/linkedin"}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z" />
+          </svg>
+          Sign in with LinkedIn
+        </button>
+
+        <div className="auth-footer">
+          <p>Already have an account? <Link to="/login">Login here</Link></p>
+        </div>
+      </div>
+    </div>
   );
 }

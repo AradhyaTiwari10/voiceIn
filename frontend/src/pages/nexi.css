@@ -1,0 +1,203 @@
+.nexi-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.nexi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+}
+
+.nexi-header h1 {
+    font-size: 2rem;
+    color: var(--primary-dark);
+    margin: 0;
+}
+
+.btn-back {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    background: var(--primary-light);
+}
+
+.nexi-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.split-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.original-card,
+.generated-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+}
+
+.original-card h3,
+.generated-card h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+    font-size: 1.2rem;
+}
+
+.text-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.post-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-content textarea {
+    flex: 1;
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    resize: none;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.post-content textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-copy,
+.btn-regenerate {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-copy {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-copy:hover {
+    background: var(--primary-dark);
+}
+
+.btn-regenerate {
+    background: #f1f5f9;
+    color: var(--text-dark);
+}
+
+.btn-regenerate:hover {
+    background: #e2e8f0;
+}
+
+.btn-linkedin {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    background: #0077b5;
+    color: white;
+}
+
+.btn-linkedin:hover:not(:disabled) {
+    background: #005885;
+}
+
+.btn-linkedin:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.success-message {
+    padding: 0.75rem;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.loading-state,
+.error-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-light);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--primary-light);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .split-view {
+        grid-template-columns: 1fr;
+    }
+
+    .original-card,
+    .generated-card {
+        height: 400px;
+    }
+}
