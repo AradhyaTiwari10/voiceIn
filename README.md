@@ -24,7 +24,7 @@ A voice-controlled LinkedIn post generator where users:
 3. Voice gets converted into text
 4. AI reorganizes it like a professional LinkedIn post
 5. Suggests engaging hooks, clean structure, CTAs, and hashtags
-6. User can preview, edit, save, or publish with one click
+6. User can preview, edit, save as draft, or publish with one click
 
 It's like **ChatGPT + Speech Recognition + LinkedIn post generator** combined.
 
@@ -76,7 +76,7 @@ Backend returns:
 - **Student Journey** — Summarizes hackathon, project, internship update
 - **Founder Stories** — Share lessons, mistakes, company updates
 - **Announcements** — New job, launch, achievement
--  *Thought Leadership** — Share insights without typing long posts
+- **Thought Leadership** — Share insights without typing long posts
 
 ## Top Features
 
@@ -97,8 +97,13 @@ Backend returns:
 ### LinkedIn-Style Editor
 - Beautiful blue-white theme
 - Minimal, distraction-free interface
-- Save drafts
+- **Drafts System**: Save posts as drafts, edit later, and manage your content pipeline
 - Auto-sync with backend
+
+### Toast Notifications
+- Beautiful, non-intrusive notifications for all actions
+- Success, Error, Warning, and Info variants
+- Smooth animations and auto-dismissal
 
 ### JWT Authentication
 - Secure login/signup
@@ -122,6 +127,9 @@ Backend returns:
 - **React Router** — Client-side routing
 - **Axios** — API communication
 - **Web Speech API** — Voice capture
+- **Tailwind CSS** — Utility-first styling
+- **Lucide React** — Beautiful icons
+- **Framer Motion** — Smooth animations
 
 ### Backend
 - **Node.js** + **Express** — REST API
@@ -129,6 +137,9 @@ Backend returns:
 - **JWT** — Authentication
 - **Bcrypt** — Password hashing
 - **CORS** — Cross-origin requests
+- **AssemblyAI** — Speech-to-text
+- **Google GenAI (Gemini)** — AI content generation
+- **Multer** — File handling
 
 ### Deployment
 - **Frontend:** Vercel
@@ -160,6 +171,12 @@ Backend returns:
    DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/voiceIn?retryWrites=true&w=majority
    JWT_SECRET=your_jwt_secret_key
    PORT=5001
+   ASSEMBLYAI_API_KEY=your_assemblyai_key
+   GEMINI_API_KEY=your_gemini_key
+   LINKEDIN_CLIENT_ID=your_linkedin_client_id
+   LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+   LINKEDIN_REDIRECT_URI=http://localhost:5001/api/auth/linkedin/callback
+   FRONTEND_URL=http://localhost:5173
    ```
    Start backend:
    ```bash
@@ -193,7 +210,17 @@ voicein/
 │   │   ├── pages/
 │   │   │   ├── login.jsx
 │   │   │   ├── signup.jsx
-│   │   │   └── dashboard.jsx
+│   │   │   ├── dashboard.jsx
+│   │   │   ├── NexiPage.jsx
+│   │   │   ├── PostHistory.jsx
+│   │   │   └── Drafts.jsx
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   │   ├── Toast.jsx
+│   │   │   │   └── Toast.css
+│   │   │   └── ProfilePreview.jsx
+│   │   ├── hooks/
+│   │   │   └── useToast.js
 │   │   ├── utils/
 │   │   │   └── axiosInstance.js
 │   │   ├── App.jsx
@@ -213,9 +240,28 @@ voicein/
 ### Authentication
 - `POST /api/signup` — Register new user
 - `POST /api/login` — Login user
+- `GET /api/auth/linkedin` — LinkedIn OAuth start
+- `GET /api/auth/linkedin/callback` — LinkedIn OAuth callback
 
 ### Protected Routes
-- `GET /api/dashboard` — Get user dashboard (requires JWT)
+- `GET /api/user` — Get current user profile
+- `PUT /api/user/profile` — Update user profile
+- `GET /api/dashboard` — Get user dashboard stats
+- `POST /api/transcribe` — Transcribe audio file
+- `POST /api/generate-post` — Generate LinkedIn post from text
+- `POST /api/post-to-linkedin` — Publish post to LinkedIn
+
+### Posts Management
+- `GET /api/posts` — Get all posts (supports pagination, search, sort, filter)
+- `PUT /api/posts/:id` — Update a post
+- `DELETE /api/posts/:id` — Delete a post
+
+### Drafts Management
+- `POST /api/drafts` — Create a new draft
+- `GET /api/drafts` — Get all drafts (supports pagination, search, sort)
+- `GET /api/drafts/:id` — Get a single draft
+- `PUT /api/drafts/:id` — Update a draft
+- `DELETE /api/drafts/:id` — Delete a draft
 
 ## Environment Variables
 
@@ -226,6 +272,12 @@ voicein/
 - `DATABASE_URL` — MongoDB connection string
 - `JWT_SECRET` — JWT signing secret
 - `PORT` — Server port (default: 5001)
+- `ASSEMBLYAI_API_KEY` — API key for AssemblyAI
+- `GEMINI_API_KEY` — API key for Google Gemini
+- `LINKEDIN_CLIENT_ID` — LinkedIn App Client ID
+- `LINKEDIN_CLIENT_SECRET` — LinkedIn App Client Secret
+- `LINKEDIN_REDIRECT_URI` — LinkedIn OAuth Redirect URI
+- `FRONTEND_URL` — Frontend application URL
 
 ## Dependencies
 
@@ -234,6 +286,9 @@ voicein/
 - react-router-dom
 - axios
 - vite
+- tailwindcss
+- lucide-react
+- motion
 
 ### Backend
 - express
@@ -242,6 +297,9 @@ voicein/
 - jsonwebtoken
 - cors
 - dotenv
+- assemblyai
+- @google/genai
+- multer
 
 ## Deployment
 
@@ -254,7 +312,7 @@ voicein/
 ### Backend (Railway)
 1. Push to GitHub
 2. Connect repo to Railway
-3. Set `DATABASE_URL` and `JWT_SECRET`
+3. Set all backend environment variables
 4. Deploy
 
-# Thank YOu
+# Thank You

@@ -22,8 +22,21 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String },
+  picture: { type: String }, // Added picture field
   linkedinId: { type: String },
   linkedinAccessToken: { type: String },
+  posts: [{
+    content: String,
+    linkedinUrl: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
+  drafts: [{
+    title: String,
+    content: String,
+    transcription: String,
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+  }],
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -44,14 +57,21 @@ app.use(
 
 app.use(express.json());
 
-//signup
-// signup route removed
-// app.post("/api/signup", async (req, res) => { ... });
+// Get Current User Route
+app.get("/api/user", async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: "No token provided" });
 
-
-//login route
-// login route removed
-// app.post("/api/login", async (req, res) => { ... });
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password -linkedinAccessToken");
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+});
 
 // LinkedIn Auth Route
 app.get("/api/auth/linkedin", (req, res) => {
@@ -84,7 +104,7 @@ app.get("/api/auth/linkedin/callback", async (req, res) => {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    const { sub: linkedinId, name, email } = profileResponse.data;
+    const { sub: linkedinId, name, email, picture } = profileResponse.data;
 
     console.log("LinkedIn Auth - Access Token received:", accessToken ? "YES" : "NO");
     console.log("LinkedIn Auth - User email:", email);
@@ -96,6 +116,7 @@ app.get("/api/auth/linkedin/callback", async (req, res) => {
       user = new User({
         name,
         email,
+        picture, // Save picture
         linkedinId,
         linkedinAccessToken: accessToken,
       });
@@ -104,6 +125,7 @@ app.get("/api/auth/linkedin/callback", async (req, res) => {
       console.log("Updating existing user with LinkedIn token");
       user.linkedinId = linkedinId;
       user.linkedinAccessToken = accessToken;
+      user.picture = picture; // Update picture
       await user.save();
     }
 
@@ -289,63 +311,62 @@ app.post("/api/post-to-linkedin", async (req, res) => {
     console.log("LinkedIn Post - LinkedIn token exists:", user?.linkedinAccessToken ? "YES" : "NO");
 
     if (!user) return res.status(401).json({ error: "User not found" });
+
     if (!user.linkedinAccessToken) {
-      console.log("LinkedIn Post - ERROR: No LinkedIn access token found for user");
-      return res.status(400).json({ error: "LinkedIn not connected. Please authenticate with LinkedIn first." });
+      return res.status(401).json({ error: "LinkedIn not connected" });
     }
 
-    // Get user's LinkedIn person URN
-    const profileResponse = await axios.get("https://api.linkedin.com/v2/userinfo", {
-      headers: { Authorization: `Bearer ${user.linkedinAccessToken}` },
-    });
-
-    const personUrn = `urn:li:person:${profileResponse.data.sub}`;
-
-    // Post to LinkedIn using Share API
-    const shareResponse = await axios.post(
+    const response = await axios.post(
       "https://api.linkedin.com/v2/ugcPosts",
       {
-        author: personUrn,
+        author: `urn:li:person:${user.linkedinId}`,
         lifecycleState: "PUBLISHED",
         specificContent: {
           "com.linkedin.ugc.ShareContent": {
             shareCommentary: {
-              text: post,
+              text: post
             },
-            shareMediaCategory: "NONE",
-          },
+            shareMediaCategory: "NONE"
+          }
         },
         visibility: {
-          "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
-        },
+          "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+        }
       },
       {
         headers: {
           Authorization: `Bearer ${user.linkedinAccessToken}`,
           "Content-Type": "application/json",
-          "X-Restli-Protocol-Version": "2.0.0",
-        },
+          "X-Restli-Protocol-Version": "2.0.0"
+        }
       }
     );
 
-    res.json({
-      success: true,
-      message: "Posted to LinkedIn successfully!",
-      postId: shareResponse.data.id
+    // Save post to user's posts array
+    const postId = response.headers['x-restli-id'] || response.data.id;
+    const linkedinUrl = postId ? `https://www.linkedin.com/feed/update/${postId}` : null;
+
+    user.posts.push({
+      content: post,
+      linkedinUrl: linkedinUrl,
+      createdAt: new Date()
     });
+
+    await user.save();
+
+    res.json({
+      message: "Posted to LinkedIn successfully!",
+      postId: user.posts[user.posts.length - 1]._id
+    });
+
   } catch (error) {
-    console.error("LinkedIn Post Error:", error.response?.data || error.message);
-
-    // Handle token expiration
-    if (error.response?.status === 401) {
-      return res.status(401).json({
-        error: "LinkedIn token expired. Please reconnect your LinkedIn account."
-      });
-    }
-
-    res.status(500).json({ error: "Failed to post to LinkedIn" });
+    console.error("LinkedIn posting error:", error.response?.data || error.message);
+    res.status(500).json({
+      error: error.response?.data?.message || "Failed to post to LinkedIn"
+    });
   }
 });
+
 
 //dashboard route
 app.get("/api/dashboard", async (req, res) => {
@@ -363,6 +384,371 @@ app.get("/api/dashboard", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(401).json({ error: "Invalid token" });
+  }
+});
+
+// Get user's posts
+app.get("/api/posts", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let posts = [...user.posts];
+
+    // Search
+    const search = req.query.search;
+    if (search) {
+      posts = posts.filter(post =>
+        post.content?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Filter by status (published posts have linkedinUrl)
+    const status = req.query.status;
+    if (status === 'published') {
+      posts = posts.filter(post => post.linkedinUrl);
+    }
+
+    // Date range filter
+    const dateFrom = req.query.dateFrom;
+    const dateTo = req.query.dateTo;
+    if (dateFrom) {
+      posts = posts.filter(post => new Date(post.createdAt) >= new Date(dateFrom));
+    }
+    if (dateTo) {
+      posts = posts.filter(post => new Date(post.createdAt) <= new Date(dateTo));
+    }
+
+    // Sort
+    const sortBy = req.query.sortBy || 'createdAt';
+    const order = req.query.order || 'desc';
+    posts.sort((a, b) => {
+      const aVal = a[sortBy];
+      const bVal = b[sortBy];
+      if (order === 'asc') {
+        return aVal > bVal ? 1 : -1;
+      } else {
+        return aVal < bVal ? 1 : -1;
+      }
+    });
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const paginatedPosts = posts.slice(startIndex, endIndex);
+
+    res.json({
+      posts: paginatedPosts,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(posts.length / limit),
+        totalPosts: posts.length,
+        hasMore: endIndex < posts.length
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+// Update a post
+app.put("/api/posts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const post = user.posts.id(id);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    post.content = content;
+    await user.save();
+
+    res.json({ message: "Post updated successfully", post });
+  } catch (error) {
+    console.error("Error updating post:", error);
+    res.status(500).json({ error: "Failed to update post" });
+  }
+});
+
+// Delete a post
+app.delete("/api/posts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.posts.pull(id);
+    await user.save();
+
+    res.json({ message: "Post deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    res.status(500).json({ error: "Failed to delete post" });
+  }
+});
+
+// ==================== DRAFT ROUTES ====================
+
+// Create Draft
+app.post("/api/drafts", async (req, res) => {
+  try {
+    const { title, content, transcription } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.drafts.push({
+      title: title || "Untitled Draft",
+      content,
+      transcription,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    await user.save();
+
+    res.json({
+      message: "Draft saved successfully",
+      draftId: user.drafts[user.drafts.length - 1]._id
+    });
+  } catch (error) {
+    console.error("Error creating draft:", error);
+    res.status(500).json({ error: "Failed to create draft" });
+  }
+});
+
+// Get All Drafts with Pagination, Search, Sort
+app.get("/api/drafts", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let drafts = [...user.drafts];
+
+    // Search
+    const search = req.query.search;
+    if (search) {
+      drafts = drafts.filter(draft =>
+        draft.content?.toLowerCase().includes(search.toLowerCase()) ||
+        draft.title?.toLowerCase().includes(search.toLowerCase()) ||
+        draft.transcription?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Sort
+    const sortBy = req.query.sortBy || 'createdAt';
+    const order = req.query.order || 'desc';
+    drafts.sort((a, b) => {
+      const aVal = a[sortBy];
+      const bVal = b[sortBy];
+      if (order === 'asc') {
+        return aVal > bVal ? 1 : -1;
+      } else {
+        return aVal < bVal ? 1 : -1;
+      }
+    });
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const paginatedDrafts = drafts.slice(startIndex, endIndex);
+
+    res.json({
+      drafts: paginatedDrafts,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(drafts.length / limit),
+        totalDrafts: drafts.length,
+        hasMore: endIndex < drafts.length
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching drafts:", error);
+    res.status(500).json({ error: "Failed to fetch drafts" });
+  }
+});
+
+// Get Single Draft
+app.get("/api/drafts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const draft = user.drafts.id(id);
+    if (!draft) {
+      return res.status(404).json({ error: "Draft not found" });
+    }
+
+    res.json({ draft });
+  } catch (error) {
+    console.error("Error fetching draft:", error);
+    res.status(500).json({ error: "Failed to fetch draft" });
+  }
+});
+
+// Update Draft
+app.put("/api/drafts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, transcription } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const draft = user.drafts.id(id);
+    if (!draft) {
+      return res.status(404).json({ error: "Draft not found" });
+    }
+
+    if (title !== undefined) draft.title = title;
+    if (content !== undefined) draft.content = content;
+    if (transcription !== undefined) draft.transcription = transcription;
+    draft.updatedAt = new Date();
+
+    await user.save();
+
+    res.json({ message: "Draft updated successfully", draft });
+  } catch (error) {
+    console.error("Error updating draft:", error);
+    res.status(500).json({ error: "Failed to update draft" });
+  }
+});
+
+// Delete Draft
+app.delete("/api/drafts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.drafts.pull(id);
+    await user.save();
+
+    res.json({ message: "Draft deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting draft:", error);
+    res.status(500).json({ error: "Failed to delete draft" });
+  }
+});
+
+// ==================== USER PROFILE ROUTES ====================
+
+// Update User Profile
+app.put("/api/user/profile", async (req, res) => {
+  try {
+    const { name, picture } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (name) user.name = name;
+    if (picture) user.picture = picture;
+
+    await user.save();
+
+    res.json({ message: "Profile updated successfully", user: { name: user.name, picture: user.picture } });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ error: "Failed to update profile" });
   }
 });
 

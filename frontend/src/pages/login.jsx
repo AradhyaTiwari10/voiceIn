@@ -1,52 +1,52 @@
 import { useState } from "react";
-import axios from "../utils/axiosInstance";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "./auth.css";
 
 export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const res = await axios.post("/login", form);
-      localStorage.setItem("token", res.data.token);
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.response?.data?.error || "Login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>🎙️ VoiceIn</h1>
-          <p>AI Voice-Powered LinkedIn Content Creator</p>
+    <div className="auth-page">
+      <nav className="auth-navbar">
+        <div className="logo">
+          <img
+            src="https://i.postimg.cc/RV0FDLyx/image-removebg-preview-(14).png"
+            alt="VoiceIn Logo"
+            className="logo-image"
+          />
         </div>
+        <Link to="http://localhost:5001/api/auth/linkedin" className="btn-nav-login">Connect</Link>
+      </nav>
 
-        <button
-          type="button"
-          className="btn-linkedin"
-          onClick={() => window.location.href = "http://localhost:5001/api/auth/linkedin"}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z" />
-          </svg>
-          Sign in with LinkedIn
-        </button>
+      <main className="auth-main">
+        <div className="auth-content">
+          <div className="image-column">
+            <div className="image-container">
+              <img
+                src="https://media.istockphoto.com/id/1705796774/photo/team-office-and-computer-in-night-workshop-for-planning-strategy-or-goal-for-business-in.jpg?s=612x612&w=0&k=20&c=V0GVmEAK8Job1ssrVLV430pYVCGrrLO1Ti0YTY6L7UM="
+                alt="Team working in office"
+                className="hero-image"
+              />
+            </div>
+          </div>
 
-        <div className="auth-footer">
-          <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
+          <div className="text-column">
+            <h1>Speaking is Easy Right?</h1>
+            <p className="subheadline">
+              VoiceIn analyzes your spoken thoughts and transforms them into professional, engaging LinkedIn posts that drive engagement and build your personal brand.
+            </p>
+
+            <button
+              type="button"
+              className="btn-linkedin-large"
+              onClick={() => window.location.href = "http://localhost:5001/api/auth/linkedin"}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="linkedin-icon">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+              </svg>
+              Connect with LinkedIn
+            </button>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

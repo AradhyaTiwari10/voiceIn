@@ -1,0 +1,100 @@
+.linkedin-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Fira Sans", Ubuntu, Oxygen, "Oxygen Sans", Cantarell, "Droid Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Lucida Grande", Helvetica, Arial, sans-serif;
+    max-width: 550px;
+    width: 100%;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin: 0 auto;
+}
+
+.linkedin-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.linkedin-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.linkedin-info {
+    flex: 1;
+}
+
+.linkedin-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #191919;
+    line-height: 1.4;
+}
+
+.linkedin-meta {
+    font-size: 12px;
+    color: #666666;
+    display: flex;
+    align-items: center;
+}
+
+.linkedin-globe {
+    margin-left: 4px;
+    font-size: 10px;
+}
+
+.linkedin-more {
+    color: #666666;
+    font-size: 20px;
+    line-height: 0.5;
+    cursor: pointer;
+}
+
+.linkedin-content {
+    font-size: 14px;
+    color: #191919;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+    /* Preserve line breaks */
+}
+
+.placeholder-text {
+    color: #a0a0a0;
+    font-style: italic;
+}
+
+.linkedin-actions {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 4px;
+    margin-top: 8px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px;
+    color: #666666;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    flex: 1;
+    transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+    background-color: #f3f3f3;
+}
+
+.action-btn .icon {
+    margin-right: 6px;
+    font-size: 16px;
+}

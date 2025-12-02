@@ -4,6 +4,8 @@ import Login from "./pages/login";
 import Dashboard from "./pages/dashboard";
 import AuthSuccess from "./pages/AuthSuccess";
 import NexiPage from "./pages/NexiPage";
+import PostHistory from "./pages/PostHistory";
+import Drafts from "./pages/Drafts";
 
 export default function App() {
   const token = localStorage.getItem("token");
@@ -20,6 +22,14 @@ export default function App() {
         <Route
           path="/nexi"
           element={token ? <NexiPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/history"
+          element={token ? <PostHistory /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/drafts"
+          element={token ? <Drafts /> : <Navigate to="/login" />}
         />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
