@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "../utils/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
 import "./auth.css";
+import Loader from "../components/ui/Loader";
 
 export default function Signup() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -25,6 +26,7 @@ export default function Signup() {
 
   return (
     <div className="auth-container">
+      {loading && <Loader fullScreen text="Creating your account..." />}
       <div className="auth-card">
         <div className="auth-header">
           <h1>🎙️ VoiceIn</h1>
