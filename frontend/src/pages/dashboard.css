@@ -98,6 +98,24 @@
   border: 2px solid #e2e8f0;
 }
 
+.btn-logout {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-logout:hover {
+  background-color: #f1f5f9;
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
 /* Main Content */
 .dashboard-main {
   flex: 1;

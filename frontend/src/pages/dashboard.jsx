@@ -174,7 +174,10 @@ export default function Dashboard() {
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
-          <div className="user-profile" onClick={handleLogout} title="Click to logout">
+          <button className="btn-logout" onClick={handleLogout}>
+            Logout
+          </button>
+          <div className="user-profile" title="User Profile">
             <img
               src={userPicture || "https://static.licdn.com/sc/h/9c8pery4andzj6ohjkjp54ma2"}
               alt={userName}
