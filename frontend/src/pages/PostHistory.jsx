@@ -112,7 +112,7 @@ export default function PostHistory() {
                 <div className="header-left">
                     <div className="logo">
                         <img
-                            src="https://i.postimg.cc/RV0FDLyx/image-removebg-preview-(14).png"
+                            src="https://res.cloudinary.com/dbfvgqsdy/image/upload/v1764741100/image-removebg-preview_14_agp14q.png"
                             alt="VoiceIn Logo"
                             className="logo-image"
                             style={{ height: "32px" }}

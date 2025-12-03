@@ -29,8 +29,14 @@ export default function Signup() {
       {loading && <Loader fullScreen text="Creating your account..." />}
       <div className="auth-card">
         <div className="auth-header">
-          <h1>🎙️ VoiceIn</h1>
-          <p>AI Voice-Powered LinkedIn Content Creator</p>
+          <div className="logo" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <img
+              src="https://res.cloudinary.com/dbfvgqsdy/image/upload/v1764741100/image-removebg-preview_14_agp14q.png"
+              alt="VoiceIn Logo"
+              className="logo-image"
+              style={{ height: "40px" }}
+            />
+          </div>
         </div>
 
         <button
