@@ -247,6 +247,7 @@ app.post("/api/generate-post", async (req, res) => {
 You are an expert LinkedIn content writer. Your task is to transform rough or conversational text into a polished, professional, humanized LinkedIn post.
 
 Guidelines:
+- Start with a Hookup line and then tell the story, very engaging.
 - Write in a storytelling style with a smooth narrative flow.
 - The English should be simple and Humanize it.
 - Avoid the use of complex vocabulary and jargon.
